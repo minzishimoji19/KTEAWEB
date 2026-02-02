@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String        @map("password_hash")
+  role         Role          @default(VIEWER)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  auditLogs    AuditLog[]
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metaJson   Json?    @map("meta_json")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Customer {
+  id           String         @id @default(uuid())
+  phone        String         @unique
+  name         String
+  relationship String?
+  bankAccount  String?        @map("bank_account")
+  gameRank     String?        @map("game_rank")
+  status       CustomerStatus @default(ACTIVE)
+  note         String?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  tier         Tier           @default(BRONZE)
+  totalPoints  Int            @default(0) @map("total_points")
+  pointLedger  PointLedger[]
+  tierHistory  TierHistory[]
+  transactions Transaction[]
+  rewardVouchers RewardVoucher[]
+
+  @@map("customers")
+}
+
+
+
+model RewardVoucher {
+  id              String    @id @default(uuid())
+  customerId      String    @map("customer_id")
+  rewardType      String    @default("DISCOUNT_PERCENT") @map("reward_type")
+  discountPercent Int       @map("discount_percent")
+  pointsCost      Int       @map("points_cost")
+  code            String    @unique
+  status          String    @default("ISSUED") // ISSUED, USED, EXPIRED
+  issuedAt        DateTime  @default(now()) @map("issued_at")
+  expiresAt       DateTime  @map("expires_at")
+  usedAt          DateTime? @map("used_at")
+  note            String?
+
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  
+  @@map("reward_vouchers")
+  @@index([customerId])
+  @@index([code])
+}
+
+model PointRule {
+  id                 String   @id @default(uuid())
+  conversionUnit     Int      @default(10000) @map("conversion_unit")
+  ticketMultiplier   Decimal  @default(1.0) @map("ticket_multiplier")
+  comboMultiplier    Decimal  @default(1.5) @map("combo_multiplier")
+  appWebBonus        Decimal  @default(0.1) @map("app_web_bonus")
+  pointsExpiryMonths Int      @default(12) @map("points_expiry_months")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  @@map("point_rules")
+}
+
+model PointLedger {
+  id            String          @id @default(uuid())
+  customerId    String          @map("customer_id")
+  transactionId String?         @map("transaction_id")
+  points        Int
+  type          PointLedgerType
+  ruleSnapshot  Json?           @map("rule_snapshot")
+  expiredAt     DateTime?       @map("expired_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  customer      Customer        @relation(fields: [customerId], references: [id])
+  transaction   Transaction?    @relation(fields: [transactionId], references: [id])
+
+  @@map("point_ledger")
+}
+
+model TierHistory {
+  id         String    @id @default(uuid())
+  customerId String    @map("customer_id")
+  tier       Tier
+  fromDate   DateTime  @default(now()) @map("from_date")
+  toDate     DateTime? @map("to_date")
+  customer   Customer  @relation(fields: [customerId], references: [id])
+
+  @@map("tier_history")
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  customerId      String            @map("customer_id")
+  amountGross     Float             @map("amount_gross")
+  amountNet       Float             @map("amount_net")
+  ticketCount     Int?              @default(1) @map("ticket_count")
+  purchaseDate    DateTime          @map("purchase_date")
+  productType     ProductType       @map("product_type")
+  channel         Channel?          @default(OFFLINE)
+  movieName       String            @map("movie_name")
+  voucherCode     String?           @map("voucher_code")
+  proofImageUrl   String?           @map("proof_image_url")
+  status          TransactionStatus @default(PENDING)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  createdById     String?           @map("created_by")
+  cinemaName      String?           @map("cinema_name")
+  discountPercent Float?            @map("discount_percent")
+  pointLedger     PointLedger[]
+  createdBy       User?             @relation(fields: [createdById], references: [id])
+  customer        Customer          @relation(fields: [customerId], references: [id])
+
+  @@map("transactions")
+  @@index([status, purchaseDate])
+  @@index([customerId])
+}
+
+model Voucher {
+  id             String    @id @default(uuid())
+  title          String    @default("Untitled Voucher")
+  description    String?
+  code           String?   // Made optional as per blueprint (some deals have no code)
+  discountType   String    @map("discount_type") // Changed to String to match Blueprint request
+  discountValue  Float?    @map("discount_value")
+  voucherType    String    @default("PROMO_CODE") @map("voucher_type")
+  
+  // Cinema & Location
+  cinemaChain    String    @default("OTHER") @map("cinema_chain")
+  city           String?
+  
+  // Details
+  pin            String?
+  applyUrl       String?   @map("apply_url")
+  paymentMethods String[]  @map("payment_methods")
+  conditions     String?
+  
+  // Timestamps
+  startAt        DateTime? @map("start_at")
+  endAt          DateTime? @map("end_at") // Mapped to expiryDate in logic
+  expiryDate     DateTime? // Keep for backward compatibility or migrate
+  
+  // Status
+  status         String    @default("ACTIVE") // Changed to String
+  verifyStatus   String    @default("UNVERIFIED") @map("verify_status")
+  
+  // Verification
+  lastTestedAt   DateTime? @map("last_tested_at")
+  verifiedAt     DateTime? @map("verified_at")
+  verifiedBy     String?   @map("verified_by")
+  createdBy      String    @default("SYSTEM") @map("created_by")
+  
+  internalNotes  String?   @map("internal_notes")
+  
+  // Source
+  sourceType     String    @default("MANUAL") @map("source_type")
+  sourceId       String?   @map("source_id")
+  source         VoucherSource? @relation(fields: [sourceId], references: [id])
+  
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("vouchers")
+  @@index([cinemaChain, endAt])
+  @@index([verifyStatus, status, endAt])
+}
+
+model VoucherSource {
+  id             String    @id @default(uuid())
+  name           String
+  baseUrl        String?   @map("base_url") // Made optional/mapped
+  type           String    @default("HTML_LIST") // Changed from SourceType enum to String
+  parserConfig   Json?     @map("parser_config") // Renamed/Mapped from configJson?
+  isEnabled      Boolean   @default(true) @map("is_enabled") // Mapped from isActive
+  
+  lastSyncedAt   DateTime? @map("last_synced_at")
+  lastSyncStatus String?   @map("last_sync_status")
+  lastSyncError  String?   @map("last_sync_error")
+  
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  
+  vouchers       Voucher[]
+  jobLogs        VoucherJobLog[]
+
+  @@map("voucher_sources")
+}
+
+model VoucherJobLog {
+  id           String        @id @default(uuid())
+  sourceId     String        @map("source_id")
+  status       JobStatus
+  foundCount   Int           @default(0) @map("found_count")
+  errorMessage String?       @map("error_message")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  source       VoucherSource @relation(fields: [sourceId], references: [id])
+
+  @@map("voucher_job_logs")
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Tier {
+  BRONZE
+  SILVER
+  GOLD
+  DIAMOND
+}
+
+enum PointLedgerType {
+  EARN
+  REDEEM
+  EXPIRE
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum ProductType {
+  TICKET
+  COMBO
+}
+
+enum Channel {
+  APP
+  WEB
+  OFFLINE
+}
+
+enum DiscountType {
+  PERCENT
+  AMOUNT
+  OTHER
+}
+
+enum VoucherStatus {
+  ACTIVE
+  EXPIRING
+  EXPIRED
+  EXHAUSTED
+  INVALID
+  PENDING_VALIDATION
+}
+
+enum SourceType {
+  TELEGRAM
+  WEBSITE
+  MANUAL
+}
+
+enum JobStatus {
+  SUCCESS
+  FAIL
+}
