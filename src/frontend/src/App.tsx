@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './Layout';
 import Login from './pages/Login';
@@ -13,7 +12,6 @@ import VoucherList from './pages/VoucherList';
 import AutomationDashboard from './pages/AutomationDashboard';
 import VoucherValidation from './pages/VoucherValidation';
 import VoucherHunter from './pages/internal/VoucherHunter';
-import { Settings, Check, Gift } from 'lucide-react'; // Ensure icons are imported if used in Layout, but this is App.tsx
 
 import { Toaster } from 'react-hot-toast';
 

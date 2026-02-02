@@ -1,4 +1,3 @@
-import React from 'react';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -44,8 +43,8 @@ export default function ConfirmModal({
                         onClick={onConfirm}
                         disabled={isLoading}
                         className={`px-4 py-2 text-sm text-white rounded-lg font-medium shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2 ${isDestructive
-                                ? 'bg-red-600 hover:bg-red-700'
-                                : 'bg-violet-600 hover:bg-violet-700'
+                            ? 'bg-red-600 hover:bg-red-700'
+                            : 'bg-violet-600 hover:bg-violet-700'
                             }`}
                     >
                         {isLoading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}

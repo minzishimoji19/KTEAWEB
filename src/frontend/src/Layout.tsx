@@ -1,6 +1,5 @@
-import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, CreditCard, Gift, BarChart2, Settings, LogOut, Search, User, Ticket, Check } from 'lucide-react';
+import { Home, Users, CreditCard, Gift, Settings, LogOut, Search, Ticket, Check } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function Layout() {

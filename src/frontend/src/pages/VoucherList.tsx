@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getVouchers, createVoucher, deleteVoucher, type Voucher } from '../api/services';
+import { getVouchers, createVoucher, type Voucher } from '../api/services';
 import { Search, Plus, X } from 'lucide-react';
 
 export default function VoucherList() {

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Search, Plus, Filter, CheckCircle, ExternalLink, Copy, RefreshCw, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Search, Plus, CheckCircle, ExternalLink, Copy, RefreshCw } from 'lucide-react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
@@ -21,14 +21,13 @@ interface Voucher {
 
 export default function VoucherHunter() {
     const [vouchers, setVouchers] = useState<Voucher[]>([]);
-    const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
 
     // Filters
     const [search, setSearch] = useState('');
     const [cinemaChain, setCinemaChain] = useState('');
-    const [status, setStatus] = useState('');
+    const status = '';
     const [verifyStatus, setVerifyStatus] = useState('');
 
     useEffect(() => {
@@ -36,7 +35,6 @@ export default function VoucherHunter() {
     }, [page, cinemaChain, status, verifyStatus]);
 
     const fetchVouchers = async () => {
-        setLoading(true);
         try {
             const params = {
                 page,
@@ -52,7 +50,7 @@ export default function VoucherHunter() {
         } catch (err) {
             toast.error("Failed to load vouchers");
         } finally {
-            setLoading(false);
+            // loaded
         }
     };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getDashboardSummary, getDashboardOps, getRevenueSeries } from '../api/services';
 import { DollarSign, Ticket, Users, Award, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -78,7 +78,7 @@ export default function Dashboard() {
                                     tickFormatter={(val) => `${val / 1000}k`}
                                 />
                                 <Tooltip
-                                    formatter={(val: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0)}
+                                    formatter={(val: any) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0)}
                                     labelFormatter={(label) => new Date(label).toLocaleDateString()}
                                 />
                                 <Line type="monotone" dataKey="net" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 6 }} name="DT Ròng" />

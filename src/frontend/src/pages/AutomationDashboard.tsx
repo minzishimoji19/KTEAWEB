@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../api/services';
-import { Play, Pause, Trash, Plus } from 'lucide-react';
+import { Play, Pause, Plus } from 'lucide-react';
 
 interface VoucherSource {
     id: string;
@@ -22,14 +22,12 @@ interface JobLog {
 export default function AutomationDashboard() {
     const [sources, setSources] = useState<VoucherSource[]>([]);
     const [logs, setLogs] = useState<JobLog[]>([]);
-    const [loading, setLoading] = useState(false);
 
     // New Source Form
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newSource, setNewSource] = useState({ name: '', type: 'TELEGRAM', config: '{}' });
 
     const fetchData = async () => {
-        setLoading(true);
         try {
             const [sRes, lRes] = await Promise.all([
                 api.get('/automation/sources'),
@@ -40,7 +38,7 @@ export default function AutomationDashboard() {
         } catch (e) {
             console.error(e);
         } finally {
-            setLoading(false);
+            // Loading done
         }
     };
 
